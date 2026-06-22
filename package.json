@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/antoinedmns/comet#readme",
   "dependencies": {
+    "chalk": "^5.6.2",
     "commander": "^15.0.0",
     "esm": "^3.2.25",
     "inquirer": "^14.0.2"
