@@ -1,5 +1,4 @@
 import chalk from 'chalk';
-import type { ExecException } from 'child_process';
 
 export const DefaultTheme = {
     prefix: chalk.yellow('?'),
@@ -14,4 +13,4 @@ export const DefaultTheme = {
 export function logInfo(message: string): void { console.log(chalk.blueBright(`\n${message}`)); }
 export function logSuccess(message: string): void { console.log(chalk.greenBright(`\n${message}`)); }
 export function logError(message: string): void { console.log(chalk.red.bold(`\n! ${message}`)); }
-export function logDebug(message: ExecException | string): void { console.log(chalk.gray(`${message}`)); }
+export function logDebug(message: string): void { console.log(chalk.gray(`\n${message}`)); }
