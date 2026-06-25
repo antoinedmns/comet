@@ -11,6 +11,7 @@ export const DefaultTheme = {
     }
 } as const;
 
+export function logInfo(message: string): void { console.log(chalk.blueBright(`\n${message}`)); }
 export function logSuccess(message: string): void { console.log(chalk.greenBright(`\n${message}`)); }
 export function logError(message: string): void { console.log(chalk.red.bold(`\n! ${message}`)); }
 export function logDebug(message: ExecException | string): void { console.log(chalk.gray(`${message}`)); }
