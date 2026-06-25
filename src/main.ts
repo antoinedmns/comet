@@ -15,7 +15,7 @@ program.command('commit')
     .option('-a, --add', 'Automatically stage all created, deleted or modified files.')
     .option('-p, --push', 'Automatically push staged files from the local to the remote repository.')
     .option('-s, --sign', 'Sign your commit.')
-    .option('-l, --lenght <number>', 'Set the length limit of the message.')
+    .option('-l, --length <number>', 'Set the length limit of the message.')
     .action((options) => {
         parser(options)
     })
