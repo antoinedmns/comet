@@ -1,9 +1,9 @@
 import { input, select, confirm } from '@inquirer/prompts'
-import { DefaultTheme } from './constants/themes.ts';
-import { CommitTypes } from './constants/types.ts';
-import chalk from 'chalk';
+import { DefaultTheme } from './constants/themes.js';
+import { CommitTypes } from './constants/types.js';
 
 export async function parser(options: any): Promise<void> {
+    const descriptionMaxLength = parseInt(options.length ?? 50);
 
     const commitType = await select({
         message: 'Which type of change are you commiting:',
@@ -30,8 +30,8 @@ export async function parser(options: any): Promise<void> {
         message: 'Write a short summary of the code changes:',
         theme: { ...DefaultTheme, validationFailureMode: 'keep' },
         validate: (description) => {
-            if ((description.length > 50) || (description.length < 3) /* TODO: Apply the length limit set with --length option (or default value) */ ) {
-                return 'The description length must be between 3 and 50 characters!';
+            if ((description.length > descriptionMaxLength) || (description.length < 3)) {
+                return `The description length must be between 3 and ${descriptionMaxLength} characters!`;
             }
             return true;
         }
@@ -52,5 +52,4 @@ export async function parser(options: any): Promise<void> {
     }
 
     commitMessage += `: ${commitDescription}`;
-    console.log('\n' + chalk.blueBright(commitMessage.toLowerCase()));
 }
