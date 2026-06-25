@@ -1,4 +1,5 @@
 import { Command } from 'commander';
+import { parser } from './parser.ts';
 const program = new Command();
 
 program
@@ -15,6 +16,9 @@ program.command('commit')
     .option('-p, --push', 'Automatically push staged files from the local to the remote repository.')
     .option('-s, --sign', 'Sign your commit.')
     .option('-l, --lenght <number>', 'Set the length limit of the message.')
+    .action((options) => {
+        parser(options)
+    })
 ;
 
 program.parse();
