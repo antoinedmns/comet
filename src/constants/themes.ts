@@ -6,6 +6,6 @@ export const DefaultTheme = {
         answer: chalk.yellow,
         highlight: chalk.yellow,
         description: chalk.yellow,
-        error: chalk.red.bold
+        error: (message: string) => chalk.red.bold(`! ${message}`)
     }
 } as const;
