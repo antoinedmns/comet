@@ -1,9 +1,25 @@
 import { input, select, confirm } from '@inquirer/prompts'
-import { DefaultTheme } from './constants/themes.js';
+import { DefaultTheme, logDebug, logError, logInfo, logSuccess } from './constants/themes.js';
 import { CommitTypes } from './constants/types.js';
+import { spawnSync } from 'child_process';
+import clipboard from 'clipboardy';
 
 export async function parser(options: any): Promise<void> {
-    const descriptionMaxLength = parseInt(options.length ?? 50);
+
+    // Initial verification (if no dry run option) to check if Git is properly installed
+    if (!options.dryRun) {
+        const gitCheck = spawnSync('git', { encoding: 'utf8' });
+
+        if (gitCheck.error) {
+            logError('Git is not installed or can not be found.');
+            if (options.debug) {
+                logDebug(gitCheck.error.message);
+            }
+            return;
+        }
+    }
+
+    const descriptionMaxLength = parseInt(options.length ?? 50); // Set the maximum description length (default: 50)
 
     const commitType = await select({
         message: 'Which type of change are you commiting:',
@@ -52,4 +68,64 @@ export async function parser(options: any): Promise<void> {
     }
 
     commitMessage += `: ${commitDescription}`;
+
+    commitMessage.toLocaleLowerCase();
+
+    if (options.add) {
+        const gitAdd = spawnSync('git', ['add', '-A'], { encoding: 'utf8' });
+
+        if (options.debug) {
+            logDebug(gitAdd.stdout);
+        }
+
+        if (gitAdd.status !== 0) {
+            logError('An error occurred while trying to stage all created, deleted or modified files.');
+            return;
+        }
+    }
+
+    if (options.copy) {
+        await clipboard.write(commitMessage);
+
+        logSuccess('The commit message has been successfully copied to your clipboard.');
+        return;
+    }
+
+    if (options.dryRun) {
+        logInfo(commitMessage);
+
+        logSuccess('The dry run has been successfully performed.');
+        return;
+    } else {
+        const gitCommit = spawnSync('git', ['commit', '-m', `"${commitMessage}"`], { encoding: 'utf8' });
+
+        if (options.debug) {
+            logDebug(gitCommit.stdout)
+        }
+
+        if (gitCommit.status !== 0) {
+            logError('An error occured while trying to create a new commit.');
+            return;
+        }
+
+        logSuccess('The new commit has been successfully created.');
+    }
+
+    if (options.push) {
+        const gitPush = spawnSync('git', ['push'], { encoding: 'utf8'});
+
+        if (gitPush.status !== 0) {
+            logError('An error occured while trying to push staged files from the local to the remote repository.');
+            if (options.debug) {
+                logDebug(gitPush.stdout);
+            }
+            return;
+        }
+
+        if (options.debug) {
+            logDebug(gitPush.stdout)
+        }
+
+        logSuccess('The staged files has been successfully push from the local to the remote repository.');
+    }
 }
