@@ -4,6 +4,12 @@ import { CommitTypes } from './constants/types.js';
 import { spawnSync } from 'child_process';
 import clipboard from 'clipboardy';
 
+const DESCRIPTION_MAX_DEFAULT = 50;
+const SCOPE_MAX_DEFAULT = 10;
+const PARAGRAPH_MAX_DEFAULT = 72;
+const BREAKING_CHANGE_MAX_DEFAULT = 72;
+const FOOTER_MAX_DEFAULT = 72;
+
 export async function parser(options: any): Promise<void> {
 
     // Initial verification (if no dry run option) to check if Git is properly installed
@@ -11,7 +17,7 @@ export async function parser(options: any): Promise<void> {
         const gitCheck = spawnSync('git', { encoding: 'utf8' });
 
         if (gitCheck.error) {
-            logError('Git is not installed or can not be found.');
+            logError('Git is not installed or can\'t be found.');
             if (options.debug) {
                 logDebug(gitCheck.error.message);
             }
@@ -19,7 +25,7 @@ export async function parser(options: any): Promise<void> {
         }
     }
 
-    const descriptionMaxLength = parseInt(options.length ?? 50); // Set the maximum description length (default: 50)
+    const descriptionMaxLength = parseInt(options.length ?? DESCRIPTION_MAX_DEFAULT); // Set the maximum description length
 
     const commitType = await select({
         message: 'Which type of change are you commiting:',
@@ -35,19 +41,33 @@ export async function parser(options: any): Promise<void> {
             if (scope.length === 0) {
                 return true;
             }
-            if ((scope.length > 10) || (scope.length < 2)) {
-                return 'The scope length must be between 2 and 10 characters!';
+            if ((scope.length > SCOPE_MAX_DEFAULT) || (scope.length < 2)) {
+                return `The scope length must be between 2 and ${SCOPE_MAX_DEFAULT} characters!`;
             }
             return true;
         }
     });
 
-    const commitDescription = await input({
+    const commitSummary = await input({
         message: 'Write a short summary of the code changes:',
         theme: { ...DefaultTheme, validationFailureMode: 'keep' },
         validate: (description) => {
             if ((description.length > descriptionMaxLength) || (description.length < 3)) {
-                return `The description length must be between 3 and ${descriptionMaxLength} characters!`;
+                return `The summary length must be between 3 and ${descriptionMaxLength} characters!`;
+            }
+            return true;
+        }
+    });
+
+    const commitParagraph = await input({
+        message: 'Provide additional contextual information about the code changes (press [enter] to skip):',
+        theme: { ...DefaultTheme, validationFailureMode: 'keep' },
+        validate: (scope) => {
+            if (scope.length === 0) {
+                return true;
+            }
+            if ((scope.length > PARAGRAPH_MAX_DEFAULT) || (scope.length < 2)) {
+                return `The paragraph length must be between 2 and ${PARAGRAPH_MAX_DEFAULT} characters!`;
             }
             return true;
         }
@@ -59,17 +79,67 @@ export async function parser(options: any): Promise<void> {
         theme: DefaultTheme
     });
 
-    let commitMessage = commitType;
-    if (commitScope.length !== 0) {
+    let commitBreakingChangeFooter = '';
+
+    if (commitBreakingChange) {
+        commitBreakingChangeFooter = await input({
+            message: 'Write an explanation about the BREAKING CHANGE (press [enter] to skip):',
+            theme: { ...DefaultTheme, validationFailureMode: 'keep' },
+            validate: (scope) => {
+                if (scope.length === 0) {
+                    return true;
+                }
+                if ((scope.length > BREAKING_CHANGE_MAX_DEFAULT) || (scope.length < 2)) {
+                    return `The BREAKING CHANGE explanation length must be between 2 and ${BREAKING_CHANGE_MAX_DEFAULT} characters!`;
+                }
+                return true;
+            }
+        });
+    }
+
+    let commitBodyFooter = await input({
+        message: 'Write a short footer to reference related issues or tickets (press [enter] to skip):',
+        theme: { ...DefaultTheme, validationFailureMode: 'keep' },
+        validate: (scope) => {
+            if (scope.length === 0) {
+                return true;
+            }
+            if ((scope.length > FOOTER_MAX_DEFAULT) || (scope.length < 2)) {
+                return `The footer length must be between 2 and ${FOOTER_MAX_DEFAULT} characters!`;
+            }
+            return true;
+        }
+    });
+
+    let commitMessage: string = commitType;
+
+    if (commitScope) {
         commitMessage += `(${commitScope})`;
     }
+
     if (commitBreakingChange) {
         commitMessage += '!';
     }
 
-    commitMessage += `: ${commitDescription}`;
+    commitMessage += commitParagraph ? `: ${commitSummary}\n\n${commitParagraph}` : `: ${commitSummary}`;
 
-    commitMessage.toLocaleLowerCase();
+    const footerParts: string[] = [];
+
+    if (commitBreakingChange && commitBreakingChangeFooter) {
+        footerParts.push(`BREAKING CHANGE: ${commitBreakingChangeFooter}`);
+    }
+
+    if (commitBodyFooter) {
+        footerParts.push(commitBodyFooter);
+    }
+
+    const commitFooter = footerParts.join('\n');
+
+    if (commitFooter) {
+        commitMessage += `\n\n${commitFooter}`;
+    }
+
+    commitMessage = commitMessage.toLocaleLowerCase();
 
     if (options.add) {
         const gitAdd = spawnSync('git', ['add', '-A'], { encoding: 'utf8' });
