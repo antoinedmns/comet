@@ -167,7 +167,12 @@ export async function parser(options: any): Promise<void> {
         logSuccess('The dry run has been successfully performed.');
         return;
     } else {
-        const gitCommit = spawnSync('git', ['commit', '-m', `"${commitMessage}"`], { encoding: 'utf8' });
+        let gitCommitParameters = ['commit', '-m', commitMessage];
+        
+        if (options.sign) {
+            gitCommitParameters.push('-s')
+        }
+        const gitCommit = spawnSync('git', gitCommitParameters, { encoding: 'utf8' });
 
         if (options.debug) {
             logDebug(gitCommit.stdout)
