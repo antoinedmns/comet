@@ -10,6 +10,7 @@
     "module": "nodenext",
     "target": "esnext",
     "types": ["node"],
+    "allowJs": true,
     // and npm install -D @types/node
 
     // Other Outputs
