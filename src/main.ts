@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { Command, Option } from 'commander';
 import { parser } from './parser.js';
 const program = new Command();
