@@ -52,7 +52,7 @@ The main command is `comet commit [options] [command]`, below you can find all o
 
 ## License
 
-This project is licensed under the [MIT] License - see the LICENSE.md file for details
+This project is licensed under the MIT License - see the LICENSE.md file for details.
 
 ## Acknowledgments
 
