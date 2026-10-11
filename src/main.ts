@@ -7,10 +7,7 @@ const program = new Command();
 program
     .name('comet')
     .description('CLI tool for conventional commits.')
-    .version('0.0.1');
-
-program.command('commit')
-    .description('Create a new commit.')
+    .version('1.0.0')
     .addOption(new Option('--dry-run', 'Perform a dry run without executing any commands.').conflicts(['add', 'push', 'sign']))
     .addOption(new Option('-c, --copy', 'Copy the commit message to your clipboard instead of committing.').conflicts(['push', 'sign']))
     .addOption(new Option('-a, --add', 'Automatically stage all created, deleted or modified files.'))
